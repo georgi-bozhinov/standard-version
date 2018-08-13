@@ -48,6 +48,11 @@ function writePackageJson (version, option) {
   delete require.cache[require.resolve(path.join(process.cwd(), 'package.json'))]
 }
 
+function writeVersionPy (version) {
+  var versionString = '# This is a comment \n __version__ = ' + version
+  fs.writeFileSync('__version__.py', versionString, 'utf-8')
+}
+
 function writeBowerJson (version, option) {
   option = option || {}
   var bower = Object.assign(option, {version: version})
@@ -741,6 +746,22 @@ describe('standard-version', function () {
       return require('./index')({silent: true})
         .catch((err) => {
           err.message.should.equal('no package file found')
+        })
+    })
+  })
+
+  describe('__version__.py support', function () {
+    beforeEach(function () {
+      writeVersionPy('1.0.0')
+    })
+
+    it('bumps version # in __version__.py', function () {
+      commit('feat: first commit')
+      shell.exec('git tag -a v1.0.0 -m "my awesome first release"')
+      commit('feat: new feature!')
+      return require('./index')({silent: true, lang: 'python'})
+        .then(() => {
+          fs.readFileSync('__version__.py', 'utf-8').should.contain('__version__ = "1.1.0"')
         })
     })
   })

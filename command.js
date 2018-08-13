@@ -2,6 +2,13 @@ var defaults = require('./defaults')
 
 module.exports = require('yargs')
   .usage('Usage: $0 [options]')
+  .option('lang', {
+    alias: 'l',
+    describe: 'Specify which language the released package is in',
+    requiresArg: true,
+    string: true,
+    default: defaults.lang
+  })
   .option('release-as', {
     alias: 'r',
     describe: 'Specify the release type manually (like npm version <major|minor|patch>)',
