@@ -1,8 +1,8 @@
 const path = require('path')
-const semver = require('semver')
 const fs = require('fs')
 
 const printError = require('./lib/print-error')
+const fetchVersionHandlers = require('./lib/handlers/fetchVersionHandlers')
 
 const bump = require('./lib/lifecycles/bump')
 const changelog = require('./lib/lifecycles/changelog')
@@ -10,33 +10,27 @@ const commit = require('./lib/lifecycles/commit')
 const tag = require('./lib/lifecycles/tag')
 
 module.exports = function standardVersion (argv) {
-  var pkg, newVersion
+  var pkg, newVersion, pkgPath
   var defaults = require('./defaults')
   var args = Object.assign({}, defaults, argv)
-  if (args.lang === defaults.lang) {
-    bump.pkgFiles.forEach((filename) => {
-      if (pkg) return
-      var pkgPath = path.resolve(process.cwd(), filename)
-      try {
-        pkg = require(pkgPath)
-      } catch (err) {}
-    })
-    if (!pkg) {
-      return Promise.reject(new Error('no package file found'))
-    }
-    newVersion = pkg.version
-  } else if (args.lang === 'python') {
-    var pkgPath = path.resolve(process.cwd(), '__version__.py')
+  bump.pkgFiles.forEach((filename) => {
+    if (pkg) return
+
+    pkgPath = path.resolve(process.cwd(), filename)
     try {
-      pkg = fs.lstatSync(pkgPath)
-    } catch (err) {}
-    if (!pkg) {
-      return Promise.reject(new Error('no version file found'))
+      pkg = require(pkgPath)
+    } catch (err) {
+      try {
+        pkg = fs.lstatSync(pkgPath)
+      } catch (err) {}
     }
-    var versionData = fs.readFileSync(pkgPath).toString().split('\n')[1]
-    newVersion = semver.coerce(versionData).version
-    pkg = { version: newVersion }
+  })
+  if (!pkg) {
+    return Promise.reject(new Error('no package file found'))
   }
+  var handlers = fetchVersionHandlers(pkgPath)
+  newVersion = handlers[args.lang]()
+  pkg = {version: newVersion, private: pkg.private ? pkg.private : false}
 
   return Promise.resolve()
     .then(() => {
