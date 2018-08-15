@@ -43,6 +43,7 @@
     "conventional-recommended-bump": "^1.0.0",
     "dotgitignore": "^1.0.3",
     "figures": "^1.5.0",
+    "find": "^0.2.9",
     "fs-access": "^1.0.0",
     "semver": "^5.1.0",
     "yargs": "^8.0.1"

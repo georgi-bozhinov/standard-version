@@ -1,25 +1,32 @@
-const path = require('path')
 const printError = require('./lib/print-error')
 
 const bump = require('./lib/lifecycles/bump')
 const changelog = require('./lib/lifecycles/changelog')
 const commit = require('./lib/lifecycles/commit')
 const tag = require('./lib/lifecycles/tag')
+const handlers = require('./lib/handlers').handlers
+const defaults = require('./defaults')
 
 module.exports = function standardVersion (argv) {
-  var pkg
-  bump.pkgFiles.forEach((filename) => {
-    if (pkg) return
-    var pkgPath = path.resolve(process.cwd(), filename)
-    try {
-      pkg = require(pkgPath)
-    } catch (err) {}
+  var correctHandler, pkgPath
+  handlers.forEach((handler) => {
+    if (correctHandler) return
+    pkgPath = handler.detectConfigFiles(process.cwd())
+    if (pkgPath !== '') correctHandler = handler
   })
-  if (!pkg) {
+
+  if (!correctHandler) {
     return Promise.reject(new Error('no package file found'))
   }
+
+  var pkg = {
+    versionFiles: correctHandler.getVersionFiles(),
+    version: correctHandler.fetchOldVersion(pkgPath),
+    private: correctHandler.isPrivate(pkgPath),
+    handler: correctHandler
+  }
+
   var newVersion = pkg.version
-  var defaults = require('./defaults')
   var args = Object.assign({}, defaults, argv)
 
   return Promise.resolve()
