@@ -1,14 +1,25 @@
+const path = require('path')
+
 const printError = require('./lib/print-error')
 
 const bump = require('./lib/lifecycles/bump')
 const changelog = require('./lib/lifecycles/changelog')
 const commit = require('./lib/lifecycles/commit')
 const tag = require('./lib/lifecycles/tag')
-const handlers = require('./lib/handlers').handlers
 const defaults = require('./defaults')
+const checkpoint = require('./lib/checkpoint')
 
 module.exports = function standardVersion (argv) {
-  var correctHandler, pkgPath
+  let correctHandler, pkgPath
+  const args = Object.assign({}, defaults, argv)
+
+  let handlers = require('./lib/handlers').handlers
+
+  if (args.langPkg && args.langPkg !== defaults.langPkg) {
+    const langPath = path.resolve(process.cwd(), args.langPkg)
+    handlers = [require(langPath)]
+  }
+
   handlers.forEach((handler) => {
     if (correctHandler) return
     pkgPath = handler.detectConfigFiles(process.cwd())
@@ -19,15 +30,16 @@ module.exports = function standardVersion (argv) {
     return Promise.reject(new Error('no package file found'))
   }
 
-  var pkg = {
+  checkpoint(args, 'detected project with config file ' + path.basename(pkgPath), [])
+
+  const pkg = {
     versionFiles: correctHandler.getVersionFiles(),
     version: correctHandler.fetchOldVersion(pkgPath),
     private: correctHandler.isPrivate(pkgPath),
     handler: correctHandler
   }
 
-  var newVersion = pkg.version
-  var args = Object.assign({}, defaults, argv)
+  let newVersion = pkg.version
 
   return Promise.resolve()
     .then(() => {

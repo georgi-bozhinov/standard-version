@@ -54,6 +54,11 @@ function writeVersionPy (version) {
   fs.writeFileSync('__version__.py', versionString, 'utf-8')
 }
 
+function writeCustomVersionPy (version) {
+  var versionString = '# This is a comment \n __version__ = ' + version
+  fs.writeFileSync('VERSION', versionString, 'utf-8')
+}
+
 function writeBowerJson (version, option) {
   option = option || {}
   var bower = Object.assign(option, {version: version})
@@ -878,6 +883,24 @@ describe('standard-version', function () {
           content.should.match(/new feature from branch/)
           // check last commit message
           shell.exec('git log --oneline -n1').stdout.should.match(/feat: new feature from branch/)
+        })
+    })
+  })
+
+  describe('lang-pkg', () => {
+    beforeEach(function () {
+      writeCustomVersionPy('1.0.0')
+    })
+
+    it('uses a custom config file', function () {
+      commit('feat: first commit')
+      shell.exec('git tag -a v1.0.0 -m "my awesome first release"')
+      commit('feat: a new feature')
+      const handlerPath = path.resolve(process.cwd(), '../lib/handlers/customHandler')
+      return require('./index')({langPkg: handlerPath, silent: true})
+        .then(function () {
+          const content = fs.readFileSync('VERSION', 'utf-8')
+          content.should.contain('1.1.0')
         })
     })
   })

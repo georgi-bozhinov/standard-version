@@ -2,6 +2,10 @@ var defaults = require('./defaults')
 
 module.exports = require('yargs')
   .usage('Usage: $0 [options]')
+  .option('lang-pkg', {
+    describe: 'Specify custom config file for version writing and fetching',
+    string: true
+  })
   .option('release-as', {
     alias: 'r',
     describe: 'Specify the release type manually (like npm version <major|minor|patch>)',
