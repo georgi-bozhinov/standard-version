@@ -50,12 +50,12 @@ function writePackageJson (version, option) {
 
 function writeVersionPy (version) {
   shell.exec('rm package.json')
-  var versionString = '# This is a comment \n __version__ = ' + version
+  const versionString = '# This is a comment \n __version__ = ' + version
   fs.writeFileSync('__version__.py', versionString, 'utf-8')
 }
 
 function writeCustomVersionPy (version) {
-  var versionString = '# This is a comment \n __version__ = ' + version
+  const versionString = '# This is a comment \n __version__ = ' + version
   fs.writeFileSync('VERSION', versionString, 'utf-8')
 }
 
