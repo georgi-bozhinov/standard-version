@@ -10,5 +10,7 @@
   "scripts": {},
   "skip": {},
   "dryRun": false,
-  "langPkg": ""
+  "langPkg": "",
+  "hideLinks": false,
+  "preset": "angular"
 }

@@ -2,6 +2,14 @@ var defaults = require('./defaults')
 
 module.exports = require('yargs')
   .usage('Usage: $0 [options]')
+  .option('preset', {
+    describe: 'Name of preset format for commit conventions',
+    default: defaults.preset
+  })
+  .option('hide-links', {
+    describe: 'Do not show links for enterprise github repositories',
+    default: defaults.hideLinks
+  })
   .option('lang-pkg', {
     describe: 'Specify custom config file for version writing and fetching',
     string: true
