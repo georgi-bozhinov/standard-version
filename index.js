@@ -52,10 +52,18 @@ module.exports = function standardVersion (argv) {
       return changelog(args, newVersion)
     })
     .then(() => {
-      return commit(args, newVersion)
+      if (args.commit) {
+        return commit(args, newVersion)
+      } else {
+        return Promise.resolve()
+      }
     })
     .then(() => {
-      return tag(newVersion, pkg.private, args)
+      if (args.commit) {
+        return tag(newVersion, pkg.private, args)
+      } else {
+        return Promise.resolve()
+      }
     })
     .catch((err) => {
       printError(args, err.message)

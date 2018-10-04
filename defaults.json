@@ -12,5 +12,6 @@
   "dryRun": false,
   "langPkg": "",
   "hideLinks": false,
-  "preset": "angular"
+  "preset": "angular",
+  "commit": true
 }

@@ -84,6 +84,11 @@ module.exports = require('yargs')
     default: defaults.dryRun,
     describe: 'See the commands that running standard-version would run'
   })
+  .option('commit', {
+    type: 'boolean',
+    default: defaults.commit,
+    describe: 'Generate changelog and package.json and write to them without comitting and creating a tag.'
+  })
   .check((argv) => {
     if (typeof argv.scripts !== 'object' || Array.isArray(argv.scripts)) {
       throw Error('scripts must be an object')

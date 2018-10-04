@@ -905,6 +905,24 @@ describe('standard-version', function () {
     })
   })
 
+  describe('commit argument', () => {
+    it('skips committing and tagging if commit argument is set to false', function () {
+      writePackageJson('1.0.0')
+      shell.exec('git tag -a v1.0.0 -m "my awesome first release"')
+      fs.writeFileSync('CHANGELOG.md', 'legacy header format<a name="1.0.0">\n', 'utf-8')
+      commit('feat: a new feature')
+
+      return execCliAsync('--commit false')
+        .then(function () {
+          getPackageVersion().should.equal('1.1.0')
+          const content = fs.readFileSync('CHANGELOG.md', 'utf-8')
+          content.should.match(/a new feature/)
+          shell.exec('git log --oneline -n1').stdout.should.match(/feat: a new feature/)
+          shell.exec('git tag').stdout.should.match(/1.0.0/)
+        })
+    })
+  })
+
   describe('.gitignore', () => {
     beforeEach(function () {
       writeBowerJson('1.0.0')
