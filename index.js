@@ -1,26 +1,45 @@
 const path = require('path')
+
 const printError = require('./lib/print-error')
 
 const bump = require('./lib/lifecycles/bump')
 const changelog = require('./lib/lifecycles/changelog')
 const commit = require('./lib/lifecycles/commit')
 const tag = require('./lib/lifecycles/tag')
+const defaults = require('./defaults')
+const checkpoint = require('./lib/checkpoint')
 
 module.exports = function standardVersion (argv) {
-  var pkg
-  bump.pkgFiles.forEach((filename) => {
-    if (pkg) return
-    var pkgPath = path.resolve(process.cwd(), filename)
-    try {
-      pkg = require(pkgPath)
-    } catch (err) {}
+  let correctHandler, pkgPath
+  const args = Object.assign({}, defaults, argv)
+
+  let handlers = require('./lib/handlers').handlers
+
+  if (args.langPkg && args.langPkg !== defaults.langPkg) {
+    const langPath = path.resolve(process.cwd(), args.langPkg)
+    handlers = [require(langPath)]
+  }
+
+  handlers.forEach((handler) => {
+    if (correctHandler) return
+    pkgPath = handler.detectConfigFiles(process.cwd())
+    if (pkgPath !== '') correctHandler = handler
   })
-  if (!pkg) {
+
+  if (!correctHandler) {
     return Promise.reject(new Error('no package file found'))
   }
-  var newVersion = pkg.version
-  var defaults = require('./defaults')
-  var args = Object.assign({}, defaults, argv)
+
+  checkpoint(args, 'detected project with config file ' + path.basename(pkgPath), [])
+
+  const pkg = {
+    versionFiles: correctHandler.getVersionFiles(),
+    version: correctHandler.fetchOldVersion(pkgPath),
+    private: correctHandler.isPrivate(pkgPath),
+    handler: correctHandler
+  }
+
+  let newVersion = pkg.version
 
   return Promise.resolve()
     .then(() => {
@@ -33,10 +52,18 @@ module.exports = function standardVersion (argv) {
       return changelog(args, newVersion)
     })
     .then(() => {
-      return commit(args, newVersion)
+      if (args.commit) {
+        return commit(args, newVersion)
+      } else {
+        return Promise.resolve()
+      }
     })
     .then(() => {
-      return tag(newVersion, pkg.private, args)
+      if (args.commit) {
+        return tag(newVersion, pkg.private, args)
+      } else {
+        return Promise.resolve()
+      }
     })
     .catch((err) => {
       printError(args, err.message)

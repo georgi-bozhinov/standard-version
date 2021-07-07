@@ -2,6 +2,18 @@ var defaults = require('./defaults')
 
 module.exports = require('yargs')
   .usage('Usage: $0 [options]')
+  .option('preset', {
+    describe: 'Name of preset format for commit conventions',
+    default: defaults.preset
+  })
+  .option('hide-links', {
+    describe: 'Do not show links for enterprise github repositories',
+    default: defaults.hideLinks
+  })
+  .option('lang-pkg', {
+    describe: 'Specify custom config file for version writing and fetching',
+    string: true
+  })
   .option('release-as', {
     alias: 'r',
     describe: 'Specify the release type manually (like npm version <major|minor|patch>)',
@@ -71,6 +83,11 @@ module.exports = require('yargs')
     type: 'boolean',
     default: defaults.dryRun,
     describe: 'See the commands that running standard-version would run'
+  })
+  .option('commit', {
+    type: 'boolean',
+    default: defaults.commit,
+    describe: 'Generate changelog and package.json and write to them without comitting and creating a tag.'
   })
   .check((argv) => {
     if (typeof argv.scripts !== 'object' || Array.isArray(argv.scripts)) {

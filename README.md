@@ -260,6 +260,35 @@ standardVersion({
 })
 ```
 
+## Support for other languages
+
+Standard version supports javascript and python packages by default.
+In a python package it will search for a \_\_version\_\_.py file in the project and write the version to it.
+You can also optionally add a custom configuration for any language with the --lang-pkg option.
+
+```sh
+standard-version --lang-pkg '/path/to/custom/setting'
+```
+
+To setup the custom configuration, you need to implement a few functions:
+
+* getVersionFiles() - returns an array of config files to search for and write version to (e.g. package.json, bower.json, etc.)
+* fetchOldVersion (configPath) - returns the old version of the package
+* updateVersion(newVersion, configPath) - updates the version in the given config file
+* detectConfigFile(cwd) - searches for the config files given in getVersionFiles()
+* isPrivate() - whether the package is private or not
+
+**Note** An example custom configuration can be found in the lib/handlers/customHandler.js file.
+You can start from there.
+
+**Note** If you use npm packages that are not by default in node in your custom configuration,
+the functions should be put in a separate package ( exported from its index.js ) and that package given as an argument to the lang-pkg option.
+
+**Note** For any language besides javascript the commands above in package.json will work only as command line arguments.
+
+The reason for this custom setup is that it seems that most languages do not agree on a unified way to store package versions. This way library owners
+can adapt their own style of holding package versions and have standard-version work for them as intended.
+
 ## Commit Message Convention, at a Glance
 
 _patches:_

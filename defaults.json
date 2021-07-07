@@ -9,5 +9,9 @@
   "tagPrefix": "v",
   "scripts": {},
   "skip": {},
-  "dryRun": false
+  "dryRun": false,
+  "langPkg": "",
+  "hideLinks": false,
+  "preset": "angular",
+  "commit": true
 }
